@@ -1,0 +1,138 @@
+import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+
+public class JavaFXMultiFieldCRUD extends Application {
+
+    private TableView<Employee> table;
+    private final ObservableList<Employee> data = FXCollections.observableArrayList();
+
+    private final TextField idField = new TextField();
+    private final TextField nameField = new TextField();
+    private final TextField deptField = new TextField();
+
+    @Override
+    public void start(Stage primaryStage) {
+        // Input fields
+        idField.setPromptText("ID");
+        nameField.setPromptText("Name");
+        deptField.setPromptText("Department");
+
+        HBox inputBox = new HBox(10, idField, nameField, deptField);
+
+        // Table
+        table = new TableView<>();
+        TableColumn<Employee, Integer> idCol = new TableColumn<>("ID");
+        idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
+        TableColumn<Employee, String> nameCol = new TableColumn<>("Name");
+        nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        TableColumn<Employee, String> deptCol = new TableColumn<>("Department");
+        deptCol.setCellValueFactory(new PropertyValueFactory<>("department"));
+
+        table.getColumns().addAll(idCol, nameCol, deptCol);
+        table.setItems(data);
+
+        // Buttons
+        Button insertBtn = new Button("Insert");
+        Button updateBtn = new Button("Update");
+        Button deleteBtn = new Button("Delete");
+
+        insertBtn.setOnAction(e -> insert());
+        updateBtn.setOnAction(e -> update());
+        deleteBtn.setOnAction(e -> delete());
+
+        HBox buttonBox = new HBox(10, insertBtn, updateBtn, deleteBtn);
+
+        VBox root = new VBox(10, inputBox, buttonBox, table);
+        root.setStyle("-fx-padding: 10;");
+
+        primaryStage.setScene(new Scene(root, 500, 400));
+        primaryStage.setTitle("JavaFX CRUD with Multiple Fields");
+        primaryStage.show();
+    }
+
+    private void insert() {
+        try {
+            int id = Integer.parseInt(idField.getText());
+            String name = nameField.getText();
+            String dept = deptField.getText();
+
+            if (!name.isEmpty() && !dept.isEmpty()) {
+                data.add(new Employee(id, name, dept));
+                clearFields();
+            }
+        } catch (NumberFormatException e) {
+            showAlert("Invalid ID", "Please enter a valid numeric ID.");
+        }
+    }
+
+    private void update() {
+        Employee selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            try {
+                int id = Integer.parseInt(idField.getText());
+                String name = nameField.getText();
+                String dept = deptField.getText();
+
+                selected.setId(id);
+                selected.setName(name);
+                selected.setDepartment(dept);
+                table.refresh();
+                clearFields();
+            } catch (NumberFormatException e) {
+                showAlert("Invalid ID", "Please enter a valid numeric ID.");
+            }
+        }
+    }
+
+    private void delete() {
+        Employee selected = table.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            data.remove(selected);
+        }
+    }
+
+    private void clearFields() {
+        idField.clear();
+        nameField.clear();
+        deptField.clear();
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setContentText(content);
+        alert.showAndWait();
+    }
+
+    // Employee class (model)
+    public static class Employee {
+        private int id;
+        private String name;
+        private String department;
+
+        public Employee(int id, String name, String department) {
+            this.id = id;
+            this.name = name;
+            this.department = department;
+        }
+
+        public int getId() { return id; }
+        public void setId(int id) { this.id = id; }
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+
+        public String getDepartment() { return department; }
+        public void setDepartment(String department) { this.department = department; }
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
